@@ -30,3 +30,6 @@ API連携を活用したWebアプリケーション
 
 ## 画面遍移図
 https://www.figma.com/file/Lwyf1Ri7GNZB3tv8ao107h/ENspider?node-id=0%3A1
+
+## ER図
+https://drive.google.com/file/d/1b_vi9t4wP18uSgL2HveOG81mOd6O92lf/view?usp=sharing
