@@ -28,9 +28,11 @@ public class ObjectCheck : MonoBehaviour
     [SerializeField] List<GameObject> SetAlpList = new List<GameObject>();
 
 //-----その他-----
-    [SerializeField] List<string> wordList = new List<string>();
+    public List<string> wordList = new List<string>();
     [SerializeField] Material defalut;
     private List<string> UIText;
+
+    public Database data;
 
     private void Start()
     {
@@ -319,6 +321,9 @@ public class ObjectCheck : MonoBehaviour
                     }
                     wordList.Add(string.Join("", tempList));
 
+                    data.word(wordList[0]);
+
+                    wordList.Clear();
                     tempList.Clear();
                     NearSetAlpList.Clear();
                     SetAlpList.Clear();
