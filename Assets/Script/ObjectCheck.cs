@@ -34,6 +34,7 @@ public class ObjectCheck : MonoBehaviour
 
     public Database data;
 
+
     private void Start()
     {
         // アイテム削除関数を実行開始
@@ -296,6 +297,20 @@ public class ObjectCheck : MonoBehaviour
             {
                 if (SetAlpList.Count != 0)
                 {
+                    //ワードを確定
+                    List<string> tempList = new List<string>();
+                    for (int i = 0; i < SetAlpList.Count; i++)
+                    {
+                        tempList.Add(SetAlpList[i].GetComponent<SpriteRenderer>().sprite.name);
+                    }
+                    wordList.Add(string.Join("", tempList));
+                    data.word(wordList[0]);
+                    wordList.Clear();
+                    if (data.mean == "")
+                    {
+                        return;
+                    }
+
                     //セットしたタイルを確定
                     GameObject temp = GameObject.FindGameObjectWithTag("SetTile");
                     temp.tag = "LockTile";
@@ -313,17 +328,7 @@ public class ObjectCheck : MonoBehaviour
                         string tempTag = "MyAlp";
                         val.tag = tempTag;
                     }
-                    //ワードを確定
-                    List<string> tempList = new List<string>();
-                    for (int i = 0; i < SetAlpList.Count; i++)
-                    {
-                        tempList.Add(SetAlpList[i].GetComponent<SpriteRenderer>().sprite.name);
-                    }
-                    wordList.Add(string.Join("", tempList));
-
-                    data.word(wordList[0]);
-
-                    wordList.Clear();
+                   
                     tempList.Clear();
                     NearSetAlpList.Clear();
                     SetAlpList.Clear();

@@ -1,10 +1,12 @@
 using UnityEngine;
-using System.Collections;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class Database : MonoBehaviour
 {
     public Text WordList;
+    public string mean;
+    [SerializeField] List<string> CreateWord = new List<string>();
 
     // Use this for initialization
     void Start()
@@ -20,7 +22,6 @@ public class Database : MonoBehaviour
 
     public void word(string am)
     {
-        //string am = "cat";
         SqliteDatabase sqlDB = new SqliteDatabase("ejdict.sqlite3");
 
         // Select
@@ -28,16 +29,16 @@ public class Database : MonoBehaviour
         DataTable dataTable = sqlDB.ExecuteQuery(selectQuery);
 
         string word;
-        string mean;
+        mean = "";
         foreach (DataRow dr in dataTable.Rows)
         {
-            //word = (string)dr["lemma"];
-            //Debug.Log("lemma:");
+ 
             word = (string)dr["word"];
             mean = (string)dr["mean"];
-            Debug.Log(word.ToString());
-            Debug.Log(mean.ToString());
+            //Debug.Log(word.ToString());
+            //Debug.Log(mean.ToString());
             WordList.text = $"{word.ToString()}\n{mean.ToString()}";
+            CreateWord.Add(WordList.text);
         }
     }
 }
