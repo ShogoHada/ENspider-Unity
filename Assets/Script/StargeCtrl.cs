@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class StargeCtrl : MonoBehaviour
 {
+
     [Header("プレイヤーゲームオブジェクト")] public UnityEngine.GameObject playerObj;
     [Header("コンティニュー位置")] public UnityEngine.GameObject continuePoint;
 
@@ -15,6 +17,11 @@ public class StargeCtrl : MonoBehaviour
 
     void Update()
     {
-        
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            GManager.instance.list.Clear();
+            GManager.instance.isPlaying = true;
+            SceneManager.LoadScene("stage");
+        }
     }
 }

@@ -11,7 +11,9 @@ GameObject:
   - component: {fileID: 4257124184996340066}
   - component: {fileID: 7000749523867334446}
   - component: {fileID: 3609432543897439219}
-  - component: {fileID: 1434238176562048179}
+  - component: {fileID: 4456716491867463350}
+  - component: {fileID: 7742541265210887422}
+  - component: {fileID: -5895164826231270934}
   m_Layer: 0
   m_Name: HexModel
   m_TagString: Tile
@@ -82,8 +84,21 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &1434238176562048179
-MeshCollider:
+--- !u!114 &4456716491867463350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8103671029212923453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d4b19ed8e8ae45b7b06adcc1a185a77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NearTile: 0
+--- !u!135 &7742541265210887422
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -92,7 +107,22 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 1
   m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -593053110101353100, guid: 1ad32453008a84877b0ca822504d3f00, type: 3}
+  serializedVersion: 2
+  m_Radius: 0.91
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &-5895164826231270934
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8103671029212923453}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0

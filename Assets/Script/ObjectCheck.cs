@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,8 +6,8 @@ using UnityEngine;
 public class ObjectCheck : MonoBehaviour
 {
     [SerializeField, Header("アイテムを取得する原点(これを元に近いアイテム、遠いアイテムが決まる)")] private GameObject originPoint;
-//-----タイル-----
-    private List<GameObject> nearTile = new List<GameObject>();
+    //-----タイル-----
+    [SerializeField] List<GameObject> nearTile = new List<GameObject>();
     private bool isTileListUpdate;
 
     [SerializeField] List<GameObject> myTile = new List<GameObject>();
@@ -32,7 +33,18 @@ public class ObjectCheck : MonoBehaviour
     [SerializeField] Material defalut;
     private List<string> UIText;
 
-    public Database data;
+    public ApiController data;
+    public List<string> tempList = new List<string>();
+    public Material TileMaterial;
+
+    //-----操作制限-----
+    public bool isPlaying;　//ゲーム終了後に操作停止
+    private bool keyIsBlock = false; //キー入力ブロックフラグ
+    private DateTime pressedKeyTime; //前回キー入力された時間
+    private TimeSpan elapsedTime; //キー入力されてからの経過時間
+    private TimeSpan blockTime = new TimeSpan(0, 0, 0, 0, 200); //ブロックする時間　1s
+
+
 
     private void Start()
     {
@@ -72,6 +84,16 @@ public class ObjectCheck : MonoBehaviour
 
     private void OnTriggerStay(Collider hit)
     {
+
+        if (hit.CompareTag("Alphabet"))
+        {
+            isAlphabetListUpdate = true;
+            if (removeAlphabet.Contains(hit.gameObject) == false)
+            {
+                removeAlphabet.Add(hit.gameObject);
+            }
+        }
+
         if (hit.CompareTag("Tile") || hit.CompareTag("MyTile"))
         {
             isTileListUpdate = true;
@@ -86,6 +108,22 @@ public class ObjectCheck : MonoBehaviour
             if (SetTileList.Contains(hit.gameObject) == false)
             {
                 SetTileList.Add(hit.gameObject);
+            }
+        }
+        if (hit.CompareTag("MyTile"))
+        {
+            isMyTileListUpdate = true;
+            if (myTile.Contains(hit.gameObject) == false)
+            {
+                myTile.Add(hit.gameObject);
+            }
+        }
+        if (hit.CompareTag("SetAlp"))
+        {
+            isNearSetAlpListtUpdate = true;
+            if (NearSetAlpList.Contains(hit.gameObject) == false)
+            {
+                NearSetAlpList.Add(hit.gameObject);
             }
         }
     }
@@ -195,143 +233,218 @@ public class ObjectCheck : MonoBehaviour
         list.RemoveAt(0);
     }
 
+    // セットされたアルファベット拾う処理
+    private void NearAlpDrow()
+    {
+        if (NearSetAlpList.Count != 0 && SetTileList[0] != null)
+        {
+            SetTileList[0].GetComponent<Renderer>().material.color = defalut.color;
+        }
+        //アルファベット拾う
+        alpDrow(NearSetAlpList);
+        //オブジェクトのタグを変更
+        if (SetAlpList.Count - 1 != 0)
+        {
+            SetAlpList[SetAlpList.Count - 2].tag = "SetAlp";
+        }
+        if (LockTileList.Count != 0)
+        {
+            LockTileList[LockTileList.Count - 1].tag = "SetTile";
+        }
+        if (SetTileList.Count != 0)
+        {
+            SetTileList[0].tag = "Tile";
+        }
+        if (LockTileList.Count != 0)
+        {
+            LockTileList.RemoveAt(LockTileList.Count - 1);
+        }
+        SetAlpList.RemoveAt(SetAlpList.Count - 1);
+        SetTileList.RemoveAt(SetTileList.Count - 1);
+        return;
+    }
     private void Update()
     {
-        // アルファベットを拾う操作
-        if (Input.GetKeyDown(KeyCode.Z))
+                //連打防止処理
+        if (keyIsBlock)
         {
-            if (UIText.Count < AlphabetText.instance.boxTextMax)
+            elapsedTime = DateTime.Now - pressedKeyTime;
+            if (elapsedTime > blockTime)
             {
-                if (NearSetAlpList.Count != 0)
-                {
-                    //セットタイルの色を戻す
-                    if (NearSetAlpList.Count != 0 && SetTileList[0] != null)
-                    {
-                        SetTileList[0].GetComponent<Renderer>().material.color = defalut.color;
-                    }
-                    //アルファベット拾う
-                    alpDrow(NearSetAlpList);
-                    //オブジェクトのタグを変更
-                    if (SetAlpList.Count - 1 != 0)
-                    {
-                        SetAlpList[SetAlpList.Count - 2].tag = "SetAlp";
-                    }
-                    if (LockTileList.Count != 0)
-                    {
-                        LockTileList[LockTileList.Count - 1].tag = "SetTile";
-                    }
-                    if (SetTileList.Count != 0)
-                    {
-                        SetTileList[0].tag = "Tile";
-                    }
-                    if (LockTileList.Count != 0)
-                    {
-                        LockTileList.RemoveAt(LockTileList.Count - 1);
-                    }
-                    SetAlpList.RemoveAt(SetAlpList.Count - 1);
-                    SetTileList.RemoveAt(SetTileList.Count - 1);
-                    return;
-                }
-                if (removeAlphabet.Count != 0)
-                {
-                    alpDrow(removeAlphabet);
-                }
+                keyIsBlock = false;
+            }
+            else
+            {
+                return;
             }
         }
-
-        // アルファベットを落とす操作
-        if (Input.GetKeyDown(KeyCode.X))
+        isPlaying = GManager.instance.isPlaying;
+        if (isPlaying)
         {
-            if (UIText.Count != 0)
+            // アルファベットを拾う操作
+            if (Input.GetKeyDown(KeyCode.Z))
             {
-                if (myTile.Count != 0 && nearTile[0].CompareTag("Tile"))
+                if (UIText.Count < AlphabetText.instance.boxTextMax)
                 {
-                    if (SetAlpList.Count == 0 || SetTileList.Count != 0)
+                    if (NearSetAlpList.Count != 0 && removeAlphabet.Count != 0)
                     {
-                        //オブジェクトのタグと色を変更
-                        if (SetAlpList.Count != 0)
+                        var originPos = originPoint.transform.position;
+                        float SetDis = Vector3.Distance(NearSetAlpList[0].transform.position, originPos);
+                        float RemoveDis = Vector3.Distance(removeAlphabet[0].transform.position, originPos);
+                        if (SetDis <= RemoveDis)
                         {
-                            SetAlpList[SetAlpList.Count - 1].tag = "LockAlp";
+                            NearAlpDrow();
                         }
-                        if (SetTileList.Count != 0)
+                        else
                         {
-                            LockTileList.Add(SetTileList[0]);
-                        }
-                        if (LockTileList.Count != 0)
-                        {
-                            SetTileList[0].tag = "LockTile";
-                        }
-                        string tempTag = "SetTile";
-                        nearTile[0].tag = tempTag;
-                        nearTile[0].GetComponent<Renderer>().material.color = Color.red;
+                            alpDrow(removeAlphabet);
 
-                        //アルファベットを設置
-                        GameObject alphabet = Instantiate(alphabetPrefab, nearTile[0].transform.position, Quaternion.identity);
+                        }
+                    }
+                    else if (NearSetAlpList.Count != 0)
+                    {
+                        NearAlpDrow();
+                    }
+                    else if (removeAlphabet.Count != 0)
+                    {
+                        alpDrow(removeAlphabet);
+                    }
+                }
+            }
+
+            // アルファベットを落とす操作
+            if (Input.GetKeyDown(KeyCode.X))
+            {
+                if (UIText.Count != 0)
+                {
+                    if (myTile.Count != 0 && nearTile[0].CompareTag("Tile"))
+                    {
+                        TileState script = nearTile[0].GetComponent<TileState>();
+                        if (script.NearTile)
+                        {
+                            if (SetAlpList.Count == 0 || SetTileList.Count != 0)
+                            {
+                                //オブジェクトのタグと色を変更
+                                if (SetAlpList.Count != 0)
+                                {
+                                    SetAlpList[SetAlpList.Count - 1].tag = "LockAlp";
+                                }
+                                if (SetTileList.Count != 0)
+                                {
+                                    LockTileList.Add(SetTileList[0]);
+                                }
+                                if (LockTileList.Count != 0)
+                                {
+                                    SetTileList[0].tag = "LockTile";
+                                }
+                                string tempTag = "SetTile";
+                                nearTile[0].tag = tempTag;
+                                nearTile[0].GetComponent<Renderer>().material.color = Color.red;
+
+                                //アルファベットを設置
+                                GameObject alphabet = Instantiate(alphabetPrefab, nearTile[0].transform.position, Quaternion.identity);
+                                string alphabetSprite = UIText[0];
+                                AlphabetText.instance.TextDown();
+                                alphabet.GetComponent<SpriteRenderer>().sprite = Load("Sprites", alphabetSprite);
+                                var rb = alphabet.GetComponent<Rigidbody>();
+                                rb.isKinematic = true;
+                                string tempTag2 = "SetAlp";
+                                alphabet.tag = tempTag2;
+                                SetAlpList.Add(alphabet);
+
+                                NearSetAlpList.Clear();
+                                SetTileList.Clear();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //アルファベットを捨てる
+                        GameObject alphabet = Instantiate(alphabetPrefab, originPoint.transform.position, Quaternion.identity);
                         string alphabetSprite = UIText[0];
                         AlphabetText.instance.TextDown();
                         alphabet.GetComponent<SpriteRenderer>().sprite = Load("Sprites", alphabetSprite);
-                        string tempTag2 = "SetAlp";
-                        alphabet.tag = tempTag2;
-                        SetAlpList.Add(alphabet);
-
-                        NearSetAlpList.Clear();
-                        SetTileList.Clear();
                     }
                 }
-                else
-                {
-                    //アルファベットを捨てる
-                    GameObject alphabet = Instantiate(alphabetPrefab, originPoint.transform.position, Quaternion.identity);
-                    string alphabetSprite = UIText[0];
-                    AlphabetText.instance.TextDown();
-                    alphabet.GetComponent<SpriteRenderer>().sprite = Load("Sprites", alphabetSprite);
-                }
             }
-        }
 
-        // ワード作成操作
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            if (myTile.Count != 0)
+            // ワード作成操作
+            if (Input.GetKeyDown(KeyCode.C))
             {
-                if (SetAlpList.Count != 0)
+                if (myTile.Count != 0)
                 {
-                    //セットしたタイルを確定
-                    GameObject temp = GameObject.FindGameObjectWithTag("SetTile");
-                    temp.tag = "LockTile";
-                    GameObject[] GO = GameObject.FindGameObjectsWithTag("LockTile");
-                    foreach (GameObject val in GO)
+                    if (SetAlpList.Count > 1)
                     {
-                        val.GetComponent<Renderer>().material.color = Color.blue;
-                        string tempTag = "MyTile";
-                        val.tag = tempTag;
-                    }
-                    //セットしたアルファベットを確定
-                    GameObject[] GOD = GameObject.FindGameObjectsWithTag("SetAlp");
-                    foreach (GameObject val in GOD)
-                    {
-                        string tempTag = "MyAlp";
-                        val.tag = tempTag;
-                    }
-                    //ワードを確定
-                    List<string> tempList = new List<string>();
-                    for (int i = 0; i < SetAlpList.Count; i++)
-                    {
-                        tempList.Add(SetAlpList[i].GetComponent<SpriteRenderer>().sprite.name);
-                    }
-                    wordList.Add(string.Join("", tempList));
+                        //連打防止
+                        keyIsBlock = true;
+                        pressedKeyTime = DateTime.Now;
 
-                    data.word(wordList[0]);
+                        //ワードを確定
+                        for (int i = 0; i < SetAlpList.Count; i++)
+                        {
+                            tempList.Add(SetAlpList[i].GetComponent<SpriteRenderer>().sprite.name);
+                        }
+                        wordList.Add(string.Join("", tempList));
+                        StartCoroutine("ChangeColor");
 
-                    wordList.Clear();
-                    tempList.Clear();
-                    NearSetAlpList.Clear();
-                    SetAlpList.Clear();
-                    SetTileList.Clear();
-                    LockTileList.Clear();
+                    }
                 }
             }
         }
+    }
+
+    IEnumerator ChangeColor()
+    {
+        data.word(wordList[0]);
+        yield return new WaitForSeconds(0.3f);
+        wordList.Clear();
+        if (data.api == false)
+        {
+            tempList.Clear();
+            yield break;
+        }
+
+        //セットしたタイルを確定
+        GameObject temp = GameObject.FindGameObjectWithTag("SetTile");
+        temp.tag = "LockTile";
+        GameObject[] GO = GameObject.FindGameObjectsWithTag("LockTile");
+        foreach (GameObject val in GO)
+        {
+            val.GetComponent<Renderer>().material.color = TileMaterial.color;
+            string tempTag = "MyTile";
+            val.tag = tempTag;
+        }
+        //セットしたアルファベットを確定
+        GameObject GOD = GameObject.FindGameObjectWithTag("SetAlp");
+        GOD.tag = "MyAlp";
+        GameObject[] POD =GameObject.FindGameObjectsWithTag("LockAlp");
+
+        foreach (GameObject val in POD)
+        {
+            string tempTag = "MyAlp";
+            val.tag = tempTag;
+        }
+
+        GameObject[] ptemp = GameObject.FindGameObjectsWithTag("MyAlp");
+        foreach (GameObject val in ptemp)
+        {
+            Vector2 pos = val.transform.position;
+            if (!GManager.instance.list.Contains(pos))
+            {
+                GManager.instance.list.Add(pos);
+            }
+        }
+
+        float MyScore = 0;
+        MyScore = 10 * Mathf.Pow(2, tempList.Count-1);
+        GManager.instance.score += MyScore;
+        tempList.Clear();
+        NearSetAlpList.Clear();
+        SetAlpList.Clear();
+        SetTileList.Clear();
+        LockTileList.Clear();
+        data.api = false;
+
     }
 
     // 落とすアルファベットのスプライト操作
