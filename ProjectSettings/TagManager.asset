@@ -12,6 +12,7 @@ TagManager:
   - MyAlp
   - LockAlp
   - LockTile
+  - Area
   layers:
   - Default
   - TransparentFX
@@ -20,14 +21,14 @@ TagManager:
   - Water
   - UI
   - Confiner
-  - 
-  - 
+  - Player
   - 
   - 
   - Tile
+  - Alphabet
   - 
-  - 
-  - 
+  - BackGround
+  - Area
   - 
   - 
   - 

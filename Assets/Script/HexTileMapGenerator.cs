@@ -9,6 +9,8 @@ public class HexTileMapGenerator : MonoBehaviour
     [SerializeField] int mapWidth = 25;
     [SerializeField] int mapHeight = 12;
     [SerializeField] private GameObject TileGenerator;
+    public Material TileMaterial;
+
 
     float tileXOffset = 1.8f;
     float tileYOffset = 1.565f;
@@ -52,9 +54,9 @@ public class HexTileMapGenerator : MonoBehaviour
         GO.transform.parent = holder;
         GO.name = x.ToString() + "," + y.ToString();
         GO.transform.position = pos;
-        if (x == -2 && y == -2)
+        if (x == 0 && y == 0)
         {
-            GO.GetComponent<Renderer>().material.color = Color.blue;
+            GO.GetComponent<Renderer>().material.color = TileMaterial.color;
             string newTag = "MyTile";
             GO.tag = newTag;
         }
