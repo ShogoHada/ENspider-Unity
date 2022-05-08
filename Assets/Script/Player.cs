@@ -4,13 +4,15 @@ using UnityEngine;
 
 public class Player : MonoBehaviour {
 
-    public float speed; //プレイヤーの動くスピード
+    public float speed = 5f; //プレイヤーの動くスピード
 
     private Vector3 Player_pos; //プレイヤーのポジション
     private float x; //x方向のImputの値
     private float y; //z方向のInputの値
     private Animator anim = null;
     public bool isPlaying;
+    public Joystick joystick;
+    [SerializeField] private GameObject KeyPanel;
 
     void Start()
     {
@@ -20,11 +22,28 @@ public class Player : MonoBehaviour {
 
     void Update()
     {
+        if (GManager.instance.PlayMode)
+        {
+            joystick.gameObject.SetActive(true);
+            KeyPanel.gameObject.SetActive(true);
+            Move(joystick.Horizontal, joystick.Vertical);
+        }
+        else
+        {
+            joystick.gameObject.SetActive(false);
+            KeyPanel.gameObject.SetActive(false);
+            Move(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        }
+
+    }
+
+    private void Move(float Horizontal, float Vertical)
+    {
         isPlaying = GManager.instance.isPlaying;
         if (isPlaying)
         {
-            x = Input.GetAxisRaw("Horizontal"); //x方向のInputの値を取得
-            y = Input.GetAxisRaw("Vertical"); //y方向のInputの値を取得
+            x = Horizontal; //x方向のInputの値を取得
+            y = Vertical; //y方向のInputの値を取得
             if (y == 0 && x == 0)  //  テンキーや3Dスティックの入力（GetAxis）がゼロの時の動作
             {
                 anim.SetBool("run", false);  //  Runモーションしない

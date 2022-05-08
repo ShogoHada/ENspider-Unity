@@ -26,11 +26,14 @@ public class ApiController : MonoBehaviour
     private void Start()
     {
         WordWindow.SetActive(false);
+        webURL = $"https://enspider.herokuapp.com/items/START";
+        StartCoroutine(GetData());
+
     }
 
     public void word(string am)
     {
-        webURL = $"http://127.0.0.1:3000/items/{am}";
+        webURL = $"https://enspider.herokuapp.com/items/{am}";
         //通信はコルーチンを使って行います。
         StartCoroutine(GetData());
     }

@@ -13,6 +13,7 @@ TagManager:
   - LockAlp
   - LockTile
   - Area
+  - UI
   layers:
   - Default
   - TransparentFX

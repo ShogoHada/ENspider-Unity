@@ -42,7 +42,9 @@ public class ObjectCheck : MonoBehaviour
     private bool keyIsBlock = false; //キー入力ブロックフラグ
     private DateTime pressedKeyTime; //前回キー入力された時間
     private TimeSpan elapsedTime; //キー入力されてからの経過時間
-    private TimeSpan blockTime = new TimeSpan(0, 0, 0, 0, 200); //ブロックする時間　1s
+    private TimeSpan CkeyblockTime = new TimeSpan(0, 0, 0, 0, 600); //ブロックする時間
+    private TimeSpan blockTime = new TimeSpan(0, 0, 0, 0, 200); //ブロックする時間
+
 
 
 
@@ -264,12 +266,153 @@ public class ObjectCheck : MonoBehaviour
         return;
     }
     private void Update()
+    {        
+        isPlaying = GManager.instance.isPlaying;
+        if (isPlaying)
+        {
+            // アルファベットを拾う操作
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                Zkey();
+            }
+
+            // アルファベットを落とす操作
+            if (Input.GetKeyDown(KeyCode.X))
+            {
+                Xkey();
+            }
+
+            // ワード作成操作
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                Ckey();
+            }
+        }
+    }
+
+    public void Zkey()
     {
-                //連打防止処理
+        if (UIText.Count < AlphabetText.instance.boxTextMax)
+        {
+            if (keyIsBlock)
+            {
+                elapsedTime = DateTime.Now - pressedKeyTime;
+                if (elapsedTime > blockTime)
+                {
+                    keyIsBlock = false;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            keyIsBlock = true;
+            pressedKeyTime = DateTime.Now;
+
+            if (NearSetAlpList.Count != 0 && removeAlphabet.Count != 0)
+            {
+                var originPos = originPoint.transform.position;
+                float SetDis = Vector3.Distance(NearSetAlpList[0].transform.position, originPos);
+                float RemoveDis = Vector3.Distance(removeAlphabet[0].transform.position, originPos);
+                if (SetDis <= RemoveDis)
+                {
+                    NearAlpDrow();
+                }
+                else
+                {
+                    alpDrow(removeAlphabet);
+
+                }
+            }
+            else if (NearSetAlpList.Count != 0)
+            {
+                NearAlpDrow();
+            }
+            else if (removeAlphabet.Count != 0)
+            {
+                alpDrow(removeAlphabet);
+            }
+        }
+    }
+
+    public void Xkey()
+    {
+        if (UIText.Count != 0)
+        {
+            if(keyIsBlock)
+                        {
+                elapsedTime = DateTime.Now - pressedKeyTime;
+                if (elapsedTime > blockTime)
+                {
+                    keyIsBlock = false;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            keyIsBlock = true;
+            pressedKeyTime = DateTime.Now;
+            if (myTile.Count != 0 && nearTile[0].CompareTag("Tile"))
+            {
+                TileState script = nearTile[0].GetComponent<TileState>();
+                if (script.NearTile)
+                {
+                    if (SetAlpList.Count == 0 || SetTileList.Count != 0)
+                    {
+                        //オブジェクトのタグと色を変更
+                        if (SetAlpList.Count != 0)
+                        {
+                            SetAlpList[SetAlpList.Count - 1].tag = "LockAlp";
+                        }
+                        if (SetTileList.Count != 0)
+                        {
+                            LockTileList.Add(SetTileList[0]);
+                        }
+                        if (LockTileList.Count != 0)
+                        {
+                            SetTileList[0].tag = "LockTile";
+                        }
+                        string tempTag = "SetTile";
+                        nearTile[0].tag = tempTag;
+                        nearTile[0].GetComponent<Renderer>().material.color = Color.red;
+
+                        //アルファベットを設置
+                        GameObject alphabet = Instantiate(alphabetPrefab, nearTile[0].transform.position, Quaternion.identity);
+                        string alphabetSprite = UIText[0];
+                        AlphabetText.instance.TextDown();
+                        alphabet.GetComponent<SpriteRenderer>().sprite = Load("Sprites", alphabetSprite);
+                        var rb = alphabet.GetComponent<Rigidbody>();
+                        rb.isKinematic = true;
+                        string tempTag2 = "SetAlp";
+                        alphabet.tag = tempTag2;
+                        SetAlpList.Add(alphabet);
+
+                        NearSetAlpList.Clear();
+                        SetTileList.Clear();
+                    }
+                }
+            }
+            else
+            {
+                //アルファベットを捨てる
+                GameObject alphabet = Instantiate(alphabetPrefab, originPoint.transform.position, Quaternion.identity);
+                string alphabetSprite = UIText[0];
+                AlphabetText.instance.TextDown();
+                alphabet.GetComponent<SpriteRenderer>().sprite = Load("Sprites", alphabetSprite);
+            }
+        }
+    }
+
+    public void Ckey()
+    {
+        //連打防止処理
         if (keyIsBlock)
         {
             elapsedTime = DateTime.Now - pressedKeyTime;
-            if (elapsedTime > blockTime)
+            if (elapsedTime > CkeyblockTime)
             {
                 keyIsBlock = false;
             }
@@ -278,117 +421,22 @@ public class ObjectCheck : MonoBehaviour
                 return;
             }
         }
-        isPlaying = GManager.instance.isPlaying;
-        if (isPlaying)
+
+        if (myTile.Count != 0)
         {
-            // アルファベットを拾う操作
-            if (Input.GetKeyDown(KeyCode.Z))
+            if (SetAlpList.Count > 1)
             {
-                if (UIText.Count < AlphabetText.instance.boxTextMax)
+                //連打防止
+                keyIsBlock = true;
+                pressedKeyTime = DateTime.Now;
+                //ワードを確定
+                for (int i = 0; i < SetAlpList.Count; i++)
                 {
-                    if (NearSetAlpList.Count != 0 && removeAlphabet.Count != 0)
-                    {
-                        var originPos = originPoint.transform.position;
-                        float SetDis = Vector3.Distance(NearSetAlpList[0].transform.position, originPos);
-                        float RemoveDis = Vector3.Distance(removeAlphabet[0].transform.position, originPos);
-                        if (SetDis <= RemoveDis)
-                        {
-                            NearAlpDrow();
-                        }
-                        else
-                        {
-                            alpDrow(removeAlphabet);
-
-                        }
-                    }
-                    else if (NearSetAlpList.Count != 0)
-                    {
-                        NearAlpDrow();
-                    }
-                    else if (removeAlphabet.Count != 0)
-                    {
-                        alpDrow(removeAlphabet);
-                    }
+                    tempList.Add(SetAlpList[i].GetComponent<SpriteRenderer>().sprite.name);
                 }
-            }
+                wordList.Add(string.Join("", tempList));
+                StartCoroutine("ChangeColor");
 
-            // アルファベットを落とす操作
-            if (Input.GetKeyDown(KeyCode.X))
-            {
-                if (UIText.Count != 0)
-                {
-                    if (myTile.Count != 0 && nearTile[0].CompareTag("Tile"))
-                    {
-                        TileState script = nearTile[0].GetComponent<TileState>();
-                        if (script.NearTile)
-                        {
-                            if (SetAlpList.Count == 0 || SetTileList.Count != 0)
-                            {
-                                //オブジェクトのタグと色を変更
-                                if (SetAlpList.Count != 0)
-                                {
-                                    SetAlpList[SetAlpList.Count - 1].tag = "LockAlp";
-                                }
-                                if (SetTileList.Count != 0)
-                                {
-                                    LockTileList.Add(SetTileList[0]);
-                                }
-                                if (LockTileList.Count != 0)
-                                {
-                                    SetTileList[0].tag = "LockTile";
-                                }
-                                string tempTag = "SetTile";
-                                nearTile[0].tag = tempTag;
-                                nearTile[0].GetComponent<Renderer>().material.color = Color.red;
-
-                                //アルファベットを設置
-                                GameObject alphabet = Instantiate(alphabetPrefab, nearTile[0].transform.position, Quaternion.identity);
-                                string alphabetSprite = UIText[0];
-                                AlphabetText.instance.TextDown();
-                                alphabet.GetComponent<SpriteRenderer>().sprite = Load("Sprites", alphabetSprite);
-                                var rb = alphabet.GetComponent<Rigidbody>();
-                                rb.isKinematic = true;
-                                string tempTag2 = "SetAlp";
-                                alphabet.tag = tempTag2;
-                                SetAlpList.Add(alphabet);
-
-                                NearSetAlpList.Clear();
-                                SetTileList.Clear();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //アルファベットを捨てる
-                        GameObject alphabet = Instantiate(alphabetPrefab, originPoint.transform.position, Quaternion.identity);
-                        string alphabetSprite = UIText[0];
-                        AlphabetText.instance.TextDown();
-                        alphabet.GetComponent<SpriteRenderer>().sprite = Load("Sprites", alphabetSprite);
-                    }
-                }
-            }
-
-            // ワード作成操作
-            if (Input.GetKeyDown(KeyCode.C))
-            {
-                if (myTile.Count != 0)
-                {
-                    if (SetAlpList.Count > 1)
-                    {
-                        //連打防止
-                        keyIsBlock = true;
-                        pressedKeyTime = DateTime.Now;
-
-                        //ワードを確定
-                        for (int i = 0; i < SetAlpList.Count; i++)
-                        {
-                            tempList.Add(SetAlpList[i].GetComponent<SpriteRenderer>().sprite.name);
-                        }
-                        wordList.Add(string.Join("", tempList));
-                        StartCoroutine("ChangeColor");
-
-                    }
-                }
             }
         }
     }
@@ -396,8 +444,9 @@ public class ObjectCheck : MonoBehaviour
     IEnumerator ChangeColor()
     {
         data.word(wordList[0]);
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.5f);
         wordList.Clear();
+
         if (data.api == false)
         {
             tempList.Clear();

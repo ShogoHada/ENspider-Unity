@@ -21,6 +21,9 @@ public class ChangeImage : MonoBehaviour
     public Text btnText;
     public GameObject backButton;
 
+    public Joystick joystick;
+    [SerializeField] private GameObject KeyPanel;
+
 
     public int i = 1;
 
@@ -28,10 +31,21 @@ public class ChangeImage : MonoBehaviour
     {
         // Imageを所得
         tutorialImage = this.GetComponent<Image>();
+        
     }
 
     void Update()
     {
+        if (GManager.instance.PlayMode)
+        {
+            joystick.gameObject.SetActive(true);
+            KeyPanel.gameObject.SetActive(true);
+        }
+        else
+        {
+            joystick.gameObject.SetActive(false);
+            KeyPanel.gameObject.SetActive(false);
+        }
         // フラグによってそれに合った画像に差し替える
         if (i == 1)
         {
@@ -78,6 +92,7 @@ public class ChangeImage : MonoBehaviour
         if (i == 9)
         {
             SceneManager.LoadScene("title");
+            GManager.instance.PlayMode = false;
         }
     }
 

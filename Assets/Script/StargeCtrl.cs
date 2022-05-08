@@ -17,11 +17,14 @@ public class StargeCtrl : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            GManager.instance.list.Clear();
-            GManager.instance.isPlaying = true;
-            SceneManager.LoadScene("stage");
-        }
+        #if UNITY_EDITOR
+            //Unityエディタのみで実行したい処理を記述
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                GManager.instance.list.Clear();
+                GManager.instance.isPlaying = true;
+                SceneManager.LoadScene("stage");
+            }
+        #endif
     }
 }
